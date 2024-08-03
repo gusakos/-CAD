@@ -1,0 +1,261 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define MAX_INPUTS 10
+#define MAX_COMPONENTS 20
+
+typedef struct {
+    char* name;
+    int num_inputs;
+    int* inputs;
+    int* truthtable;
+    int num_truthtable;
+} Gate;
+
+typedef struct {
+    char* ID;
+    char* name;
+    int num_inputs;
+    int* inputs;
+    Gate* reference;
+    int num_dependent;
+    char** dependent;
+    int output;
+} Component;
+
+typedef struct {
+    char* ID;
+    char* name;
+    int num_inputs;
+    int num_outputs;
+    int* inputs;
+    int* outputs;
+    int num_components;
+    Component** components;
+    char** output_mappings;
+    char** mappings_comp;
+    char** mappings_out;
+} Subsystem;
+
+typedef struct {
+    int num_gates;
+    Gate** gates;
+    char* file;
+} Library;
+
+int doubleBufferSubsystem(Subsystem* subsystem) {
+    int* buffer1 = (int*)malloc(subsystem->num_components * sizeof(int));
+    int* buffer2 = (int*)malloc(subsystem->num_components * sizeof(int));
+
+    // Initialize both buffers to -1
+    for (int i = 0; i < subsystem->num_components; i++) {
+        buffer1[i] = -1;
+        buffer2[i] = -1;
+    }
+
+    int* currentBuffer = buffer1;
+    int* nextBuffer = buffer2;
+
+    int converged = 0;
+
+    while (!converged) {
+        converged = 1; // Assume convergence until proven otherwise
+
+        // Perform calculations for each component
+        for (int i = 0; i < subsystem->num_components; i++) {
+            Component* component = subsystem->components[i];
+
+            // Check if all inputs are defined
+            int inputsDefined = 1;
+            for (int j = 0; j < component->num_inputs; j++) {
+                int inputIndex = component->inputs[j];
+                if (currentBuffer[inputIndex] == -1) {
+                    inputsDefined = 0;
+                    break;
+                }
+            }
+
+            // Calculate output if inputs are defined
+            if (inputsDefined) {
+                int output = component->reference->truthtable[0]; // Default output
+
+                // Find matching truth table entry
+                for (int j = 0; j < component->reference->num_truthtable; j++) {
+                    int match = 1;
+                    for (int k = 0; k < component->num_inputs; k++) {
+                        int inputIndex = component->inputs[k];
+                        int truthValue = (currentBuffer[inputIndex] == 1) ? 1 : 0;
+                        if (truthValue != component->reference->truthtable[j * component->num_inputs + k + 1]) {
+                            match = 0;
+                            break;
+                        }
+                    }
+                    if (match) {
+                        output = component->reference->truthtable[j * component->num_inputs + component->num_inputs + 1];
+                        break;
+                    }
+                }
+
+                // Check if the output has changed
+                if (currentBuffer[i] != output) {
+                    converged = 0; // The output has changed, so not converged
+                }
+
+                // Update the output in the next buffer
+                nextBuffer[i] = output;
+            } else {
+                // Input(s) not defined, so output remains undefined
+                nextBuffer[i] = -1;
+                converged = 0; // Inputs not defined, so not converged
+            }
+        }
+
+        // Swap buffers
+        int* temp = currentBuffer;
+        currentBuffer = nextBuffer;
+        nextBuffer = temp;
+    }
+
+    // Copy the final values to the subsystem's output array
+    for (int i = 0; i < subsystem->num_outputs; i++) {
+        subsystem->outputs[i] = currentBuffer[subsystem->output_mappings[i]];
+    }
+
+    // Free memory
+    free(buffer1);
+    free(buffer2);
+
+    return 1; // Return 1 to indicate successful convergence
+}
+
+int main() {
+    // Create gates and their truth tables
+    Gate* notGate = (Gate*)malloc(sizeof(Gate));
+    notGate->name = "NOT";
+    notGate->num_inputs = 1;
+    notGate->inputs = (int*)malloc(notGate->num_inputs * sizeof(int));
+    notGate->inputs[0] = 0;
+    notGate->truthtable = (int*)malloc(2 * sizeof(int));
+    notGate->truthtable[0] = 1; // P=0
+    notGate->truthtable[1] = 0; // P=1
+    notGate->num_truthtable = 2;
+
+    Gate* nandGate = (Gate*)malloc(sizeof(Gate));
+    nandGate->name = "NAND";
+    nandGate->num_inputs = 2;
+    nandGate->inputs = (int*)malloc(nandGate->num_inputs * sizeof(int));
+    nandGate->inputs[0] = 0;
+    nandGate->inputs[1] = 1;
+    nandGate->truthtable = (int*)malloc(4 * sizeof(int));
+    nandGate->truthtable[0] = 1; // P=0, Q=0
+    nandGate->truthtable[1] = 1; // P=0, Q=1
+    nandGate->truthtable[2] = 1; // P=1, Q=0
+    nandGate->truthtable[3] = 0; // P=1, Q=1
+    nandGate->num_truthtable = 4;
+
+    // Create components
+    Component* u1 = (Component*)malloc(sizeof(Component));
+    u1->ID = "U1";
+    u1->name = "NOT";
+    u1->num_inputs = 1;
+    u1->inputs = (int*)malloc(u1->num_inputs * sizeof(int));
+    u1->inputs[0] = 2; // Index of input C
+    u1->reference = notGate;
+    u1->num_dependent = 0;
+    u1->dependent = NULL;
+    u1->output = -1; // Initialize output to undefined
+
+    Component* u2 = (Component*)malloc(sizeof(Component));
+    u2->ID = "U2";
+    u2->name = "NAND";
+    u2->num_inputs = 2;
+    u2->inputs = (int*)malloc(u2->num_inputs * sizeof(int));
+    u2->inputs[0] = 0; // Index of input A
+    u2->inputs[1] = 3; // Index of input U1 (output of U1)
+    u2->reference = nandGate;
+    u2->num_dependent = 0;
+    u2->dependent = NULL;
+    u2->output = -1; // Initialize output to undefined
+
+    Component* u3 = (Component*)malloc(sizeof(Component));
+    u3->ID = "U3";
+    u3->name = "NAND";
+    u3->num_inputs = 2;
+    u3->inputs = (int*)malloc(u3->num_inputs * sizeof(int));
+    u3->inputs[0] = 1; // Index of input B
+    u3->inputs[1] = 2; // Index of input C
+    u3->reference = nandGate;
+    u3->num_dependent = 0;
+    u3->dependent = NULL;
+    u3->output = -1; // Initialize output to undefined
+
+    Component* u4 = (Component*)malloc(sizeof(Component));
+    u4->ID = "U4";
+    u4->name = "NAND";
+    u4->num_inputs = 2;
+    u4->inputs = (int*)malloc(u4->num_inputs * sizeof(int));
+    u4->inputs[0] = 3; // Index of input U2 (output of U2)
+    u4->inputs[1] = 4; // Index of input U3 (output of U3)
+    u4->reference = nandGate;
+    u4->num_dependent = 0;
+    u4->dependent = NULL;
+    u4->output = -1; // Initialize output to undefined
+
+    // Create subsystem
+    Subsystem* subsystem = (Subsystem*)malloc(sizeof(Subsystem));
+    subsystem->ID = "Sub1";
+    subsystem->name = "Example Subsystem";
+    subsystem->num_inputs = 3;
+    subsystem->num_outputs = 1;
+    subsystem->inputs = (int*)malloc(subsystem->num_inputs * sizeof(int));
+    subsystem->inputs[0] = 0; // Index of input A
+    subsystem->inputs[1] = 1; // Index of input B
+    subsystem->inputs[2] = 2; // Index of input C
+    subsystem->outputs = (int*)malloc(subsystem->num_outputs * sizeof(int));
+    subsystem->num_components = 4;
+    subsystem->components = (Component**)malloc(subsystem->num_components * sizeof(Component*));
+    subsystem->components[0] = u1;
+    subsystem->components[1] = u2;
+    subsystem->components[2] = u3;
+    subsystem->components[3] = u4;
+    subsystem->output_mappings = (char**)malloc(subsystem->num_outputs * sizeof(char*));
+    subsystem->output_mappings[0] = "U4"; // Output D is the output of U4
+    subsystem->mappings_comp = NULL;
+    subsystem->mappings_out = NULL;
+
+    // Perform double buffer calculations
+    int convergence = doubleBufferSubsystem(subsystem);
+
+    // Print the results
+    if (convergence) {
+        printf("Subsystem outputs:\n");
+        for (int i = 0; i < subsystem->num_outputs; i++) {
+            printf("%s = %d\n", subsystem->output_mappings[i], subsystem->outputs[i]);
+        }
+    } else {
+        printf("Convergence failed. Outputs may be undefined.\n");
+    }
+
+    // Free memory
+    free(notGate->inputs);
+    free(notGate->truthtable);
+    free(notGate);
+    free(nandGate->inputs);
+    free(nandGate->truthtable);
+    free(nandGate);
+    free(u1->inputs);
+    free(u1);
+    free(u2->inputs);
+    free(u2);
+    free(u3->inputs);
+    free(u3);
+    free(u4->inputs);
+    free(u4);
+    free(subsystem->inputs);
+    free(subsystem->outputs);
+    free(subsystem->components);
+    free(subsystem->output_mappings);
+    free(subsystem);
+
+    return 0;
+}

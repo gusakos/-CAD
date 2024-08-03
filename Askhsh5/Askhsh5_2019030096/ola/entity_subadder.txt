@@ -1,0 +1,10 @@
+ENTITY FULL_SUBTRACTOR IS
+VAR N = 3 			%% Number of Bits in the Adder
+LIB FULL_SUBTRACTOR
+PORT ( IN A     : A2 , A1 , A0 	%% A, MSB TO LSB
+       IN B     : B2 , B1 , B0 	%% B, MSB TO LSB
+       IN Cin   : {ADD_SUB} 		%% Cin
+       IN ADD'_SUB   : ADD_SUB     %% Control Signal 
+       OUT S    : {S2 , S1 , S0 } 	%% Sum, MSB TO LSB
+       OUT Cout : {Cout} 		%% Cout
+END FULL_SUBTRACTOR

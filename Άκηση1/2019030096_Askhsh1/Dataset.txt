@@ -1,0 +1,44 @@
+x^5-3x^4-2x^3+10x^2-12+4=0
+3x^5-124x^4+439x^3+1234x^2+10439x-931678= 0
+8x^5  + 3x^4  + 6x^3  + 2x^2  + 12 = 0
+
+........................................x^5-3x^4-2x^3+10x^2-12+4=0........................................
+
+Χ0=0 
+δέλτα= 1 -> x= 0.520412 with definition after 4 iterations , x= 0.520320 with der after 4 iterations after 7 iterations
+δέλτα= 10^-1 -> x=0.520288 with definition after 4 iterations , x=0.520320 with der after 4 iterations
+δέλτα= 10^-3 -> x=0.520321 with definition after 4 iterations, x=0.520320 with der after 4 iterations
+δέλτα= 10^-5 -> x=0.520319 with definition after 4 iterations, x=0.520320 with der after 4 iterations
+δέλτα= 10^-6 -> x=0.520320 with definition after 5 iterations, x=0.520320 with der after 4 iterations
+δέλτα= 10^-7 -> x=0. 0.520285 with definition after 4 iterations, x=0.520320 with der after 3 iterations
+δέλτα= 10^-8 -> failed to found  after 25 iterations with definition , x=0.520320 with der after 4 iterations
+δέλτα= 10^-9 -> failed to found after 25 iterations  with definition, x=0.520320 with der after 4 iterations
+
+δέλτα= 10^-3
+Χ0=10 -> x=2.942388 with definition after 11 iterations, x= 2.942369 with der after 11 iterations
+Χ0=-10 -> x= -2.038103 with definition after 11 iterations, x= -2.038080 with der after 11 iterations
+Χ0=0 -> x=0.520321 with definition , x=0.520320 with der
+Χ0=-2 -> x= -2.038080 with definition after 3 iterations , x= -2.038080 with der after 3 iterations
+Χ0=3 -> x= 2.942369 with definition after 3 iterations , x= 2.942369 with der after 3 iterations
+
+
+........................................3x^5-124x^4+439x^3+1234x^2+10439x-931678........................................
+
+Χ0=0
+δέλτα= 10^-1 -> x= 37.196606 with definition after 11 iterations, x= 37.196606 with der after 10 iterations
+δέλτα= 10^-3 -> x= 37.196606 with definition after 10 iterations, x= 37.196606 with der after 10 iterations
+δέλτα= 10^-5 -> x= 37.196724 with definition after 11 iterations, x= 37.196606 with der after 10 iterations
+δέλτα= 10^-7 -> root  not found with definition after 25 iterations, x= 37.196606 with der after 10 iteration
+
+
+........................................8x^5  + 3x^4  + 6x^3  + 2x^2  + 12........................................
+
+Χ0=-1
+δέλτα= 10^-1 -> x= -1.063358 with definition after 4 iterations, x= -1.063480 with der after 3 iterations
+δέλτα= 10^-3 -> x= -1.063480 with definition after 4 iterations, x= -1.063480 with der after 4 iterations
+δέλτα= 10^-5 -> x= -1.063480 with definition after 3 iterations, x= -1.063480 with der after 3iterations
+δέλτα= 10^-7 -> x= -1.063390 with definition after 3 iterations, x= -1.063480 with der after 3 iterations
+
+
+Χ0=0->  root  not found with definition after 25 iterations, root  not found with definition after 25 iterations
+Χ0=1-> x= -1.063480 with definition after 4 iterations, x= -1.063480 with der after 4 iterations

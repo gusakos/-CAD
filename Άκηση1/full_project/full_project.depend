@@ -1,0 +1,6 @@
+# depslib dependency file v1.0
+1678126419 source:c:\users\kosta\onedrive - Πολυτεχνείο Κρήτης\Μαθήματα\8ο Εξάμηνο\cad\full_project\main.c
+	<stdio.h>
+	<stdlib.h>
+	<math.h>
+
